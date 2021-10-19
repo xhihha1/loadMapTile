@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head></head>
+
+<body>
+  <div>
+    <canvas id="myCanvas" width="500" height="500"></canvas>
+  </div>
+  <div id="mapArea">
+
+  </div>
+</body>
+<script>
+  function lon2tile(lon, zoom) {
+    return (Math.floor((lon + 180) / 360 * Math.pow(2, zoom)));
+  }
+
+  function lat2tile(lat, zoom) {
+    return (Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 *
+      Math.pow(2, zoom)));
+  }
+
+  function tile2long(x, z) {
+    return (x / Math.pow(2, z) * 360 - 180);
+  }
+
+  function tile2lat(y, z) {
+    var n = Math.PI - 2 * Math.PI * y / Math.pow(2, z);
+    return (180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))));
+  }
+
+
+  var north_edge = 25.032531
+  var west_edge = 121.562722
+  var south_edge = 25.045498
+  var east_edge = 121.614757
+  var zoom = 16;
+  var top_tile = lat2tile(north_edge, zoom); // eg.lat2tile(34.422, 9);
+  var left_tile = lon2tile(west_edge, zoom);
+  var bottom_tile = lat2tile(south_edge, zoom);
+  var right_tile = lon2tile(east_edge, zoom);
+  var width = Math.abs(left_tile - right_tile) + 1;
+  var height = Math.abs(top_tile - bottom_tile) + 1;
+
+  // total tiles
+  var total_tiles = width * height; // -> eg. 377
+
+  console.log('north_edge', north_edge)
+  console.log('west_edge', west_edge)
+  console.log('south_edge', south_edge)
+  console.log('east_edge', east_edge)
+  console.log('zoom', zoom, Math.pow(2, zoom), Math.pow(2, zoom) * Math.pow(2, zoom))
+  console.log('top_tile', top_tile)
+  console.log('left_tile', left_tile)
+  console.log('bottom_tile', bottom_tile)
+  console.log('right_tile', right_tile)
+  console.log('width', width)
+  console.log('height', height)
+  console.log('total_tiles', total_tiles)
+  var c=document.getElementById("myCanvas");
+  var canvasWidth = c.offsetWidth
+  var unitWidth = Math.floor(canvasWidth / (right_tile - left_tile + 1))
+  var unitHeight = unitWidth
+  console.log('unitWidth', unitWidth)
+  var ctx=c.getContext("2d");
+  for (var j = bottom_tile; j <= top_tile; j++) {
+    for (var i = left_tile; i <= right_tile; i++) {
+      var img = document.createElement('img')
+      var id= 't_' + (i + j * (bottom_tile - top_tile + 1))
+      img.id = id
+      console.log('i:', i, 'j:', j, 'id', id)
+      img.src = 'https://tile.openstreetmap.org/' + zoom + '/' + i + '/' + j + '.png'
+      document.getElementById('mapArea').appendChild(img)
+      //  (imgObj, (i - left_tile) * 50, (j - bottom_tile) * 50 ,50,50);
+      drawArea(ctx,
+        'https://tile.openstreetmap.org/' + zoom + '/' + i + '/' + j + '.png',
+        (i - left_tile) * unitWidth,
+        (j - bottom_tile) * unitWidth,
+        unitWidth,
+        unitWidth
+      )
+    }
+    var br = document.createElement('br')
+    document.getElementById('mapArea').appendChild(br);
+  }
+  // https://tile.openstreetmap.org/${z}/${x}/${y}.png
+  function drawArea(ctx, url, x, y, w, h) {
+    var imgObj = new Image();
+    imgObj.src = url
+    imgObj.onload = function () {
+      ctx.drawImage(imgObj, x, y, w, h);
+    };
+  }
+</script>
+
+</html>

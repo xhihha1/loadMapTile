@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+
+<head></head>
+
+<body>
+  <div>
+    <canvas id="myCanvas" width="500" height="500"></canvas>
+  </div>
+  <div id="mapArea">
+
+  </div>
+</body>
+<script>
+  function lon2tile(lon, zoom) {
+    return (Math.floor((lon + 180) / 360 * Math.pow(2, zoom)));
+  }
+
+  function lat2tile(lat, zoom) {
+    return (Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 *
+      Math.pow(2, zoom)));
+  }
+
+  function tile2long(x, z) {
+    return (x / Math.pow(2, z) * 360 - 180);
+  }
+
+  function tile2lat(y, z) {
+    var n = Math.PI - 2 * Math.PI * y / Math.pow(2, z);
+    return (180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))));
+  }
+
+
+  var north_edge = 25.032531
+  var west_edge = 121.562722
+  var south_edge = 25.045498
+  var east_edge = 121.614757
+  // var zoom = 16;
+  var sliceNum = 14
+  console.log('sliceNum', sliceNum)
+  var zoomX = foundXZ (sliceNum, west_edge, east_edge)
+  var zoomY = foundYZ (sliceNum, south_edge, north_edge)
+  var zoom = Math.min(zoomX, zoomY);
+  var top_tile = lat2tile(north_edge, zoom); // eg.lat2tile(34.422, 9);
+  var left_tile = lon2tile(west_edge, zoom);
+  var bottom_tile = lat2tile(south_edge, zoom);
+  var right_tile = lon2tile(east_edge, zoom);
+  var width = Math.abs(left_tile - right_tile) + 1;
+  var height = Math.abs(top_tile - bottom_tile) + 1;
+
+  // total tiles
+  var total_tiles = width * height; // -> eg. 377
+
+  console.log('north_edge', north_edge)
+  console.log('west_edge', west_edge)
+  console.log('south_edge', south_edge)
+  console.log('east_edge', east_edge)
+  console.log('zoom', zoom, Math.pow(2, zoom), Math.pow(2, zoom) * Math.pow(2, zoom))
+  console.log('top_tile', top_tile)
+  console.log('left_tile', left_tile)
+  console.log('bottom_tile', bottom_tile)
+  console.log('right_tile', right_tile)
+  console.log('width', width)
+  console.log('height', height)
+  console.log('total_tiles', total_tiles)
+  var c=document.getElementById("myCanvas");
+  var canvasWidth = c.offsetWidth
+  var canvasHeight = c.offsetHeight
+  var unitWidth = Math.floor(canvasWidth / width)
+  var unitHeight = Math.floor(canvasHeight / height)
+  var unit = Math.min(unitWidth, unitHeight)
+  console.log('unit', canvasWidth, canvasHeight, unitWidth, unitHeight, unit)
+  var ctx=c.getContext("2d");
+  var b = Math.min(bottom_tile, top_tile)
+  var t = Math.max(bottom_tile, top_tile)
+  var l = Math.min(left_tile, right_tile)
+  var r = Math.max(left_tile, right_tile)
+  for (var j = b; j <= t; j++) {
+    for (var i = l; i <= r; i++) {
+      var img = document.createElement('img')
+      var id= 't_' + (i + j * (Math.abs(bottom_tile - top_tile) + 1))
+      img.id = id
+      console.log('i:', i, 'j:', j, 'id', id)
+      img.src = 'https://tile.openstreetmap.org/' + zoom + '/' + i + '/' + j + '.png'
+      document.getElementById('mapArea').appendChild(img)
+      //  (imgObj, (i - left_tile) * 50, (j - bottom_tile) * 50 ,50,50);
+      drawArea(ctx,
+        'https://tile.openstreetmap.org/' + zoom + '/' + i + '/' + j + '.png',
+        (i - l) * unit,
+        (j - b) * unit,
+        unit,
+        unit
+      )
+    }
+    var br = document.createElement('br')
+    document.getElementById('mapArea').appendChild(br);
+  }
+  // https://tile.openstreetmap.org/${z}/${x}/${y}.png
+  function drawArea(ctx, url, x, y, w, h) {
+    var imgObj = new Image();
+    imgObj.src = url
+    imgObj.onload = function () {
+      ctx.drawImage(imgObj, x, y, w, h);
+    };
+  }
+
+  // -------------------------------------------------------------
+  function foundXZ (sliceNum, west_edge, east_edge) {
+    for (var z = 20; z > -1; z--) {
+      var left_tile = lon2tile(west_edge, z);
+      var right_tile = lon2tile(east_edge, z);
+      if ((Math.abs(right_tile - left_tile) + 1) <= sliceNum) {
+        return z
+      }
+    }
+    return 0
+  }
+  function foundYZ (sliceNum, south_edge, north_edge) {
+    for (var z = 20; z > -1; z--) {
+      var bottom_tile = lat2tile(south_edge, z);
+      var top_tile = lat2tile(north_edge, z);
+      if ((Math.abs(top_tile - bottom_tile) + 1) <= sliceNum) {
+        return z
+      }
+    }
+    return 0
+  }
+  
+</script>
+
+</html>
