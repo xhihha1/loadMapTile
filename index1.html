@@ -36,7 +36,7 @@
   var south_edge = 25.045498
   var east_edge = 121.614757
   // var zoom = 16;
-  var sliceNum = 14
+  var sliceNum = 6
   console.log('sliceNum', sliceNum)
   var zoomX = foundXZ (sliceNum, west_edge, east_edge)
   var zoomY = foundYZ (sliceNum, south_edge, north_edge)
@@ -75,14 +75,15 @@
   var t = Math.max(bottom_tile, top_tile)
   var l = Math.min(left_tile, right_tile)
   var r = Math.max(left_tile, right_tile)
-  for (var j = b; j <= t; j++) {
-    for (var i = l; i <= r; i++) {
-      var img = document.createElement('img')
-      var id= 't_' + (i + j * (Math.abs(bottom_tile - top_tile) + 1))
-      img.id = id
-      console.log('i:', i, 'j:', j, 'id', id)
-      img.src = 'https://tile.openstreetmap.org/' + zoom + '/' + i + '/' + j + '.png'
-      document.getElementById('mapArea').appendChild(img)
+  var numRowCol = Math.max(t - b, r - l)
+  for (var j = b; j <= b + numRowCol; j++) {
+    for (var i = l; i <= l + numRowCol; i++) {
+      // var img = document.createElement('img')
+      // var id= 't_' + (i + j * (Math.abs(bottom_tile - top_tile) + 1))
+      // img.id = id
+      // console.log('i:', i, 'j:', j, 'id', id)
+      // img.src = 'https://tile.openstreetmap.org/' + zoom + '/' + i + '/' + j + '.png'
+      // document.getElementById('mapArea').appendChild(img)
       //  (imgObj, (i - left_tile) * 50, (j - bottom_tile) * 50 ,50,50);
       drawArea(ctx,
         'https://tile.openstreetmap.org/' + zoom + '/' + i + '/' + j + '.png',
